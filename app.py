@@ -17,7 +17,7 @@ def create_store():
     for store in stores.values():
         if store["name"] == store_data["name"]:
             abort(400, message=f"A store with name '{store_data['name']}' already exists.")
-            
+
     store_id = uuid.uuid4().hex
     store = { **store_data, 'id': store_id }
     stores[store_id] = store
@@ -42,6 +42,29 @@ def create_item_in_store(name):
     
     return item , 201
 
+@app.delete('/item/<string:item_id>')
+def delete_item(item_id):
+    try:
+        del items[item_id]
+        return {'message': 'Item deleted'}
+    except KeyError:
+        abort(404, message="item not found")
+
+
+def update_item(item_id):
+    item_data = request.get_json()
+    if ("price " not in item_data or "name" not in item_data or "store_id" not in item_data):
+        abort(400, message="Bad request. Ensure 'price', 'name' and 'store_id' are included in the request body.")
+    try:
+        item = items[item_id]
+        item |= item_data
+        return item
+    except KeyError:
+        abort(404, message="item not found")
+
+
+
+
 
 @app.get('/item')
 def get_all_items():
@@ -62,3 +85,11 @@ def get_item(item_id):
     except KeyError:    
             abort(404, message="item not found")
     
+
+@app.delete('/store/<string:store_id>')
+def delete_store(store_id):
+    try:
+        del stores[store_id]
+        return {'message': 'Store deleted'}
+    except KeyError:
+        abort(404, message="store not found")  
